@@ -2,19 +2,19 @@
   "name": "LuckLuck",
   "tree": {
     "$className": "DataModel",
-
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
+      },
+      "Packages": {
+        "$path": "Packages"
       }
     },
-
     "ServerScriptService": {
       "Server": {
         "$path": "src/server"
       }
     },
-
     "StarterPlayer": {
       "StarterPlayerScripts": {
         "Client": {
@@ -22,7 +22,6 @@
         }
       }
     },
-
     "Workspace": {
       "$properties": {
         "FilteringEnabled": true
@@ -47,6 +46,127 @@
             20,
             512
           ]
+        }
+      },
+      "Map": {
+        "$className": "Folder",
+        "SpawnPoint": {
+          "$className": "Part",
+          "$properties": {
+            "Anchored": true,
+            "Position": [
+              0,
+              3,
+              -50
+            ],
+            "Size": [
+              4,
+              4,
+              4
+            ],
+            "Transparency": 0.8,
+            "Color": [
+              1,
+              1,
+              0
+            ],
+            "CanCollide": false
+          }
+        },
+        "Path": {
+          "$className": "Folder",
+          "Waypoint1": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Position": [
+                0,
+                3,
+                -30
+              ],
+              "Size": [
+                2,
+                2,
+                2
+              ],
+              "Transparency": 0.8,
+              "Color": [
+                0,
+                1,
+                0
+              ],
+              "CanCollide": false
+            }
+          },
+          "Waypoint2": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Position": [
+                0,
+                3,
+                0
+              ],
+              "Size": [
+                2,
+                2,
+                2
+              ],
+              "Transparency": 0.8,
+              "Color": [
+                0,
+                1,
+                0
+              ],
+              "CanCollide": false
+            }
+          },
+          "Waypoint3": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Position": [
+                0,
+                3,
+                30
+              ],
+              "Size": [
+                2,
+                2,
+                2
+              ],
+              "Transparency": 0.8,
+              "Color": [
+                0,
+                1,
+                0
+              ],
+              "CanCollide": false
+            }
+          },
+          "Waypoint4": {
+            "$className": "Part",
+            "$properties": {
+              "Anchored": true,
+              "Position": [
+                0,
+                3,
+                50
+              ],
+              "Size": [
+                2,
+                2,
+                2
+              ],
+              "Transparency": 0.8,
+              "Color": [
+                0,
+                1,
+                0
+              ],
+              "CanCollide": false
+            }
+          }
         }
       }
     },
