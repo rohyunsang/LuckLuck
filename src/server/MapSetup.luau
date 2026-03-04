@@ -14,25 +14,46 @@ function MapSetup.init()
 		mapFolder.Parent = workspace
 	end
 
-	-- 영웅 배치 영역 (HeroZone) 파트 생성
-	local heroZone = mapFolder:FindFirstChild("HeroZone")
-	if not heroZone then
-		heroZone = Instance.new("Part")
-		heroZone.Name = "HeroZone"
-		-- 크기 (가로 100, 두께 1, 세로 100)
-		heroZone.Size = Vector3.new(100, 1, 100)
-		heroZone.Position = Vector3.new(0, 0, 0)
-		heroZone.Anchored = true
-		heroZone.CanCollide = true
-		heroZone.Material = Enum.Material.Grass
-		heroZone.Color = Color3.fromRGB(50, 100, 50)
-		heroZone.Parent = mapFolder
+	-- 15칸 영웅 배치 영역 생성 (가로 5줄, 세로 3줄 형태)
+	-- 기존 단일 HeroZone 대신 GridZone_1 부터 GridZone_15 가 생성됨
+	local originX = -40 -- 시작 X좌표 (맵 형태에 맞춰 조정 가능)
+	local originZ = 0   -- 시작 Z좌표
+	local spacingX = 20 -- 각 칸의 X 간격 (크기 18 + 여백 2)
+	local spacingZ = 20 -- 각 칸의 Z 간격
 
-		-- Zone이라는 것을 눈에 띄게 하기 위해 테두리 선이나 투명도 조정 가능
-		-- heroZone.Transparency = 0.5
+	local function getGridName(index: number) return "GridZone_" .. index end
+
+	for i = 1, 15 do
+		local gridName = getGridName(i)
+		local gridPart = mapFolder:FindFirstChild(gridName)
+		
+		if not gridPart then
+			gridPart = Instance.new("Part")
+			gridPart.Name = gridName
+			gridPart.Size = Vector3.new(18, 0.5, 18) -- 한 칸의 물리적 크기
+			
+			-- 5x3 배치 로직 (1~5번은 1열, 6~10번은 2열, ...)
+			-- 1번 칸이 제일 왼쪽 상단이 되도록 계산
+			local col = (i - 1) % 5
+			local row = math.floor((i - 1) / 5)
+			
+			gridPart.Position = Vector3.new(originX + (col * spacingX), 0, originZ + (row * spacingZ))
+			gridPart.Anchored = true
+			gridPart.CanCollide = true
+			gridPart.Material = Enum.Material.Grass
+			
+			-- 시각적 효과 (바둑판 형태)
+			if (row + col) % 2 == 0 then
+				gridPart.Color = Color3.fromRGB(50, 120, 50)
+			else
+				gridPart.Color = Color3.fromRGB(40, 100, 40)
+			end
+			
+			gridPart.Parent = mapFolder
+		end
 	end
 
-	print("[MapSetup] HeroZone 영역 준비 완료.")
+	print("[MapSetup] 15칸 HeroGrid. 격자 영역 준비 완료.")
 end
 
 return MapSetup

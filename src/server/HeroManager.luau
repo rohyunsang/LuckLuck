@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
 
 local HeroConfig = require(ReplicatedStorage.Shared.HeroConfig)
+local HeroGrid = require(script.Parent.HeroGrid)
 
 local HeroManager = {}
 
@@ -18,6 +19,9 @@ function HeroManager.initPlayer(player: Player)
 		player:SetAttribute("Gold", 200) -- 시작 테스트용 골드
 		player:SetAttribute("ProbLevel", 1)
 	end
+
+	-- Grid 초기화
+	HeroGrid.initPlayerGrid(player)
 
 	-- 소환된 영웅 정보 저장 폴더
 	local heroesFolder = player:FindFirstChild("HeroesFolder")
@@ -55,6 +59,12 @@ end
 
 -- 영웅 소환
 function HeroManager.summonHero(player: Player)
+	-- 최대 소환 수(25마리) 체크
+	local totalCount = HeroGrid.getTotalHeroCount(player)
+	if totalCount >= 25 then
+		return false, "Max Hero Limit Reached (25/25)"
+	end
+
 	local gold = player:GetAttribute("Gold") or 0
 	local cost = HeroConfig.SummonCost
 
@@ -63,12 +73,21 @@ function HeroManager.summonHero(player: Player)
 		return false, "Not enough gold"
 	end
 
-	-- 골드 차감
-	player:SetAttribute("Gold", gold - cost)
-
 	-- 등급 추첨
 	local level = player:GetAttribute("ProbLevel") or 1
 	local rarity = HeroManager._rollRarity(level)
+
+	-- 격자 빈칸 확인
+	local gridIndex = HeroGrid.findAvailableGrid(player, rarity)
+	if not gridIndex then
+		return false, "No available grid slots"
+	end
+
+	-- 골드 차감
+	player:SetAttribute("Gold", gold - cost)
+
+	-- 격자에 기록 및 해당 칸 안에서의 순번
+	local countInGrid = HeroGrid.addHeroToGrid(player, gridIndex, rarity)
 
 	-- 임시로 폴더에 기록
 	local heroData = Instance.new("Configuration")
@@ -77,19 +96,21 @@ function HeroManager.summonHero(player: Player)
 	heroData.Parent = player:FindFirstChild("HeroesFolder")
 
 	-- 실제 맵(3D 파트) 스폰 처리
-	local heroZone = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("HeroZone")
-	if heroZone then
-		-- Zone 크기 기반 랜던 스페이싱
-		local zoneSize = heroZone.Size
-		local zonePos = heroZone.Position
+	local gridZone = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("GridZone_" .. gridIndex)
+	if gridZone then
+		local zonePos = gridZone.Position
 		
-		local rx = (math.random() - 0.5) * (zoneSize.X - 4) -- 가장자리 여백
-		local rz = (math.random() - 0.5) * (zoneSize.Z - 4)
+		-- 한 칸 안에서 최대 3마리 배치. 
+		-- 중앙(2), 좌측(-offset), 우측(+offset) 형태로 배치
+		local offsetX = 0
+		if countInGrid == 2 then offsetX = -4
+		elseif countInGrid == 3 then offsetX = 4 
+		end
 		
 		local heroPart = Instance.new("Part")
 		heroPart.Name = "Hero_" .. rarity
 		heroPart.Size = Vector3.new(4, 4, 4)
-		heroPart.Position = Vector3.new(zonePos.X + rx, zonePos.Y + (heroPart.Size.Y / 2) + (heroZone.Size.Y / 2), zonePos.Z + rz)
+		heroPart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (heroPart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 		heroPart.Anchored = true
 		heroPart.CanCollide = false
 		heroPart.Material = Enum.Material.Neon
@@ -102,10 +123,13 @@ function HeroManager.summonHero(player: Player)
 		-- 오너쉽 및 파트 식별용
 		heroPart:SetAttribute("Owner", player.Name)
 		heroPart:SetAttribute("Rarity", rarity)
-		heroPart.Parent = heroZone
+		heroPart.Parent = gridZone
 	end
 
-	print("[HeroManager] " .. player.Name .. " 소환 결과: " .. rarity)
+	print("[HeroManager] " .. player.Name .. " 영웅 소환: " .. rarity .. " (배치 구역: " .. gridIndex .. " / 현재 총 " .. (totalCount+1) .. "마리)")
+	
+	-- 전체 마릿수 변경을 클라이언트가 알 수 있도록 (UI에서 사용)
+	player:SetAttribute("HeroCount", totalCount + 1)
 
 	return true, rarity
 end

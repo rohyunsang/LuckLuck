@@ -33,6 +33,7 @@ end
 local function HeroSummonUI()
 	local gold = usePlayerAttribute("Gold", 0)
 	local probLevel = usePlayerAttribute("ProbLevel", 1)
+	local heroCount = usePlayerAttribute("HeroCount", 0)
 	
 	local lastSummon, setLastSummon = React.useState(nil)
 	local isSummoning, setIsSummoning = React.useState(false)
@@ -76,16 +77,35 @@ local function HeroSummonUI()
 			Stroke = e("UIStroke", { Color = Color3.fromRGB(100, 100, 150), Thickness = 2 }),
 			Padding = e("UIPadding", { PaddingTop = UDim.new(0, 15), PaddingBottom= UDim.new(0, 15), PaddingLeft = UDim.new(0, 15), PaddingRight= UDim.new(0, 15) }),
 
-			-- 골드 표시
-			GoldLabel = e("TextLabel", {
+			-- 골드 및 영웅 수량 헤더 영역
+			HeaderContent = e("Frame", {
 				Size = UDim2.new(1, 0, 0, 30),
 				Position = UDim2.new(0, 0, 0, 0),
 				BackgroundTransparency = 1,
-				Text = "💰 골드: " .. gold,
-				TextColor3 = Color3.fromRGB(255, 215, 0),
-				Font = Enum.Font.GothamBold,
-				TextSize = 24,
-				TextXAlignment = Enum.TextXAlignment.Left,
+			}, {
+				-- 골드 표시
+				GoldLabel = e("TextLabel", {
+					Size = UDim2.new(0.5, 0, 1, 0),
+					Position = UDim2.new(0, 0, 0, 0),
+					BackgroundTransparency = 1,
+					Text = "💰 " .. gold,
+					TextColor3 = Color3.fromRGB(255, 215, 0),
+					Font = Enum.Font.GothamBold,
+					TextSize = 24,
+					TextXAlignment = Enum.TextXAlignment.Left,
+				}),
+
+				-- 영웅 마릿수 표시
+				CountLabel = e("TextLabel", {
+					Size = UDim2.new(0.5, 0, 1, 0),
+					Position = UDim2.new(0.5, 0, 0, 0),
+					BackgroundTransparency = 1,
+					Text = "🧑 영웅: " .. heroCount .. " / 25",
+					TextColor3 = (heroCount >= 25) and Color3.fromRGB(255, 80, 80) or Color3.fromRGB(200, 200, 255),
+					Font = Enum.Font.GothamBold,
+					TextSize = 18,
+					TextXAlignment = Enum.TextXAlignment.Right,
+				}),
 			}),
 
 			-- 소환 결과 표시
