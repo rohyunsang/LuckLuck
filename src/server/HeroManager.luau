@@ -76,6 +76,35 @@ function HeroManager.summonHero(player: Player)
 	heroData:SetAttribute("Rarity", rarity)
 	heroData.Parent = player:FindFirstChild("HeroesFolder")
 
+	-- 실제 맵(3D 파트) 스폰 처리
+	local heroZone = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("HeroZone")
+	if heroZone then
+		-- Zone 크기 기반 랜던 스페이싱
+		local zoneSize = heroZone.Size
+		local zonePos = heroZone.Position
+		
+		local rx = (math.random() - 0.5) * (zoneSize.X - 4) -- 가장자리 여백
+		local rz = (math.random() - 0.5) * (zoneSize.Z - 4)
+		
+		local heroPart = Instance.new("Part")
+		heroPart.Name = "Hero_" .. rarity
+		heroPart.Size = Vector3.new(4, 4, 4)
+		heroPart.Position = Vector3.new(zonePos.X + rx, zonePos.Y + (heroPart.Size.Y / 2) + (heroZone.Size.Y / 2), zonePos.Z + rz)
+		heroPart.Anchored = true
+		heroPart.CanCollide = false
+		heroPart.Material = Enum.Material.Neon
+		
+		-- 설정해둔 비주얼 컬러 적용
+		if HeroConfig.Visuals and HeroConfig.Visuals[rarity] then
+			heroPart.Color = HeroConfig.Visuals[rarity].Color
+		end
+
+		-- 오너쉽 및 파트 식별용
+		heroPart:SetAttribute("Owner", player.Name)
+		heroPart:SetAttribute("Rarity", rarity)
+		heroPart.Parent = heroZone
+	end
+
 	print("[HeroManager] " .. player.Name .. " 소환 결과: " .. rarity)
 
 	return true, rarity

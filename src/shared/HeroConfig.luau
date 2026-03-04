@@ -23,4 +23,12 @@ HeroConfig.Probabilities = {
 	[10] = { Common = 70.0, Rare = 20.0, Epic = 9.0, Legend = 1.0 },
 }
 
+-- 렌더링용 외형 (색상)
+HeroConfig.Visuals = {
+	Common = { Color = Color3.fromRGB(150, 150, 150) },     -- 회색
+	Rare   = { Color = Color3.fromRGB(50, 100, 255) },      -- 파란색
+	Epic   = { Color = Color3.fromRGB(150, 50, 255) },      -- 보라색
+	Legend = { Color = Color3.fromRGB(255, 200, 50) },      -- 노란색(금색)
+}
+
 return HeroConfig

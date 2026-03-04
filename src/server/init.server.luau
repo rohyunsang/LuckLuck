@@ -10,9 +10,17 @@ local Players = game:GetService("Players")
 
 local WaveManager = require(script.WaveManager)
 local HeroManager = require(script.HeroManager)
+local MapSetup = require(script.MapSetup)
+local DataManager = require(script.DataManager)
 
 --------------------------------------------------------------------------------
--- 1. GameState 초기화
+-- 1. 맵 초기화 & 외부 데이터 (시트) 연동
+--------------------------------------------------------------------------------
+MapSetup.init()
+DataManager.loadSheetData()
+
+--------------------------------------------------------------------------------
+-- 2. GameState 초기화
 --------------------------------------------------------------------------------
 local gameState = Instance.new("Folder")
 gameState.Name = "GameState"
