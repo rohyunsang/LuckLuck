@@ -123,8 +123,38 @@ function MonsterSpawner._createHealthBar(monster: BasePart, config: any)
 	end)
 end
 
+-- 몬스터 외형 초기화 (스테이지 기반)
+function MonsterSpawner._createMonsterPart(waveNum: number, config: any): BasePart
+	local shapeIndex = math.floor((waveNum - 1) / 10) % 4
+	local monster
+
+	if shapeIndex == 0 then
+		monster = Instance.new("Part")
+		monster.Shape = Enum.PartType.Block
+	elseif shapeIndex == 1 then
+		monster = Instance.new("Part")
+		monster.Shape = Enum.PartType.Ball
+	elseif shapeIndex == 2 then
+		monster = Instance.new("WedgePart")
+	else
+		monster = Instance.new("Part")
+		monster.Shape = Enum.PartType.Cylinder
+	end
+
+	monster.Name = config.Name
+	monster.Size = config.Size
+
+	-- 스테이지 진행에 따른 살짝 다른 색상 변경 적용 (Hue shift)
+	local h, s, v = config.Color:ToHSV()
+	local hueShift = (waveNum * 0.03) % 1
+	local newH = (h + hueShift) % 1
+	monster.Color = Color3.fromHSV(newH, s, v)
+
+	return monster
+end
+
 -- 단일 몬스터 생성
-function MonsterSpawner.spawnMonster(monsterType: string): BasePart?
+function MonsterSpawner.spawnMonster(monsterType: string, waveNum: number?): BasePart?
 	-- 필드 상한 체크
 	if MonsterSpawner.getFieldCount() >= MAX_FIELD_MONSTERS then
 		warn("[MonsterSpawner] 필드 상한 " .. MAX_FIELD_MONSTERS .. "마리 도달! 스폰 대기")
@@ -140,10 +170,7 @@ function MonsterSpawner.spawnMonster(monsterType: string): BasePart?
 		return nil
 	end
 
-	local monster = Instance.new("Part")
-	monster.Name = config.Name
-	monster.Size = config.Size
-	monster.Color = config.Color
+	local monster = MonsterSpawner._createMonsterPart(waveNum or 1, config)
 	monster.Position = MonsterSpawner._getSpawnPosition()
 	monster.Anchored = true
 	monster.CanCollide = false
@@ -180,7 +207,7 @@ function MonsterSpawner.spawnWave(waveData)
 
 	-- SpawnInterval 간격으로 스폰
 	for i, monsterType in spawnList do
-		MonsterSpawner.spawnMonster(monsterType)
+		MonsterSpawner.spawnMonster(monsterType, waveData.WaveNum)
 		print("[MonsterSpawner] 스폰: " .. monsterType .. " (" .. i .. "/" .. #spawnList .. ")")
 
 		if i < #spawnList and waveData.SpawnInterval > 0 then

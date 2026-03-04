@@ -64,7 +64,13 @@ function MonsterMovement.start()
 		return
 	end
 
+	local ReplicatedStorage = game:GetService("ReplicatedStorage")
+	local gameState = ReplicatedStorage:WaitForChild("GameState")
+
 	RunService.Heartbeat:Connect(function(dt)
+		local timeScale = gameState:GetAttribute("TimeScale") or 1.0
+		dt = dt * timeScale
+
 		-- 웨이포인트가 변경되었을 수 있으므로 매번 다시 가져오지 않고 캐싱
 		-- (런타임 중 경로가 바뀌는 경우 여기서 갱신하면 됨)
 

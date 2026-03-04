@@ -15,6 +15,7 @@ local WaveManager = {}
 WaveManager._isRunning = false
 WaveManager._currentWave = 0
 WaveManager._movementStarted = false
+WaveManager._jumpRequestedTo = nil -- 점프할 스테이지 번호 저장 변수
 
 local TOTAL_WAVES = 50
 
@@ -46,8 +47,9 @@ function WaveManager.start(gameState: Folder)
 		end
 	end)
 
-	-- 웨이브 순차 진행
-	for waveNum = 1, TOTAL_WAVES do
+	-- 웨이브 순차 진행 (for 루프 대신 while 루프로 변경하여 점프 대처)
+	local waveNum = 1
+	while waveNum <= TOTAL_WAVES and WaveManager._isRunning do
 		WaveManager._currentWave = waveNum
 		local waveData = WaveConfig[waveNum]
 
@@ -56,6 +58,8 @@ function WaveManager.start(gameState: Folder)
 			break
 		end
 
+		waveData.WaveNum = waveNum
+		
 		-- GameState 업데이트
 		gameState:SetAttribute("CurrentWave", waveNum)
 		gameState:SetAttribute("IsBossStage", waveData.IsBoss)
@@ -81,7 +85,13 @@ function WaveManager.start(gameState: Folder)
 
 			while elapsed < timeLimit do
 				task.wait(0.5)
-				elapsed += 0.5
+				local timeScale = gameState:GetAttribute("TimeScale") or 1.0
+				elapsed += (0.5 * timeScale)
+
+				-- 점프 요청이 들어왔는지 체크
+				if WaveManager._jumpRequestedTo then
+					break
+				end
 
 				-- 남은 시간 갱신
 				gameState:SetAttribute("RemainingTime", math.ceil(timeLimit - elapsed))
@@ -90,6 +100,15 @@ function WaveManager.start(gameState: Folder)
 					bossDefeated = true
 					break
 				end
+			end
+
+			-- 점프 처리
+			if WaveManager._jumpRequestedTo then
+				print("[WaveManager] ⏭ 점프 요청으로 보스 스테이지 중단.")
+				MonsterMovement.clearAll()
+				waveNum = WaveManager._jumpRequestedTo
+				WaveManager._jumpRequestedTo = nil
+				continue
 			end
 
 			gameState:SetAttribute("RemainingTime", 0)
@@ -130,7 +149,14 @@ function WaveManager.start(gameState: Folder)
 
 			while elapsed < timeLimit do
 				task.wait(0.5)
-				elapsed += 0.5
+				local timeScale = gameState:GetAttribute("TimeScale") or 1.0
+				elapsed += (0.5 * timeScale)
+
+				-- 점프 요청 체크
+				if WaveManager._jumpRequestedTo then
+					break
+				end
+
 				gameState:SetAttribute("RemainingTime", math.ceil(timeLimit - elapsed))
 
 				-- 스폰이 끝난 후에만 조기 클리어 체크
@@ -138,6 +164,15 @@ function WaveManager.start(gameState: Folder)
 					allCleared = true
 					break
 				end
+			end
+
+			-- 점프 처리
+			if WaveManager._jumpRequestedTo then
+				print("[WaveManager] ⏭ 점프 요청으로 일반 스테이지 중단.")
+				MonsterMovement.clearAll()
+				waveNum = WaveManager._jumpRequestedTo
+				WaveManager._jumpRequestedTo = nil
+				continue
 			end
 
 			gameState:SetAttribute("RemainingTime", 0)
@@ -167,18 +202,48 @@ function WaveManager.start(gameState: Folder)
 			local restElapsed = 0
 			while restElapsed < restTime do
 				task.wait(0.5)
-				restElapsed += 0.5
+				local timeScale = gameState:GetAttribute("TimeScale") or 1.0
+				restElapsed += (0.5 * timeScale)
+
+				-- 점프 요청 체크
+				if WaveManager._jumpRequestedTo then
+					break
+				end
+
 				gameState:SetAttribute("RemainingTime", math.ceil(restTime - restElapsed))
 			end
+
+			if WaveManager._jumpRequestedTo then
+				print("[WaveManager] ⏭ 휴식 시간 중 점프 요청")
+				MonsterMovement.clearAll()
+				waveNum = WaveManager._jumpRequestedTo
+				WaveManager._jumpRequestedTo = nil
+				continue
+			end
+
 			gameState:SetAttribute("RemainingTime", 0)
 		end
+		
+		waveNum += 1
 	end
 
-	print("[WaveManager] ===== 🎉 모든 50스테이지 클리어! =====")
-	gameState:SetAttribute("StageCleared", true)
-	gameState:SetAttribute("IsRunning", false)
-	gameState:SetAttribute("MonsterCount", 0)
-	WaveManager._isRunning = false
+	-- 정상적으로 루프가 끝난 경우 (점프 없이 모든 스테이지 클리어)
+	if WaveManager._isRunning and not WaveManager._jumpRequestedTo then
+		print("[WaveManager] ===== 🎉 모든 50스테이지 클리어! =====")
+		gameState:SetAttribute("StageCleared", true)
+		gameState:SetAttribute("IsRunning", false)
+		gameState:SetAttribute("MonsterCount", 0)
+		WaveManager._isRunning = false
+	end
+end
+
+function WaveManager.jumpToStage(stageNum: number)
+	if not WaveManager._isRunning then
+		warn("[WaveManager] 게임 진행 중이 아닙니다. 점프할 수 없습니다.")
+		return
+	end
+	stageNum = math.clamp(stageNum, 1, 50)
+	WaveManager._jumpRequestedTo = stageNum
 end
 
 function WaveManager.getCurrentWave(): number

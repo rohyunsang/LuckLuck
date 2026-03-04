@@ -24,6 +24,7 @@ gameState:SetAttribute("IsBossStage", false)
 gameState:SetAttribute("IsGameOver", false)
 gameState:SetAttribute("IsRunning", false)
 gameState:SetAttribute("StageCleared", false)
+gameState:SetAttribute("TimeScale", 1.0) -- 디버그용 게임 배속
 gameState.Parent = ReplicatedStorage
 
 --------------------------------------------------------------------------------
@@ -40,6 +41,14 @@ summonHeroEvent.Parent = ReplicatedStorage
 local upgradeProbEvent = Instance.new("RemoteFunction")
 upgradeProbEvent.Name = "UpgradeProbEvent"
 upgradeProbEvent.Parent = ReplicatedStorage
+
+local debugSetTimeScale = Instance.new("RemoteEvent")
+debugSetTimeScale.Name = "DebugSetTimeScale"
+debugSetTimeScale.Parent = ReplicatedStorage
+
+local debugJumpStage = Instance.new("RemoteEvent")
+debugJumpStage.Name = "DebugJumpStage"
+debugJumpStage.Parent = ReplicatedStorage
 
 --------------------------------------------------------------------------------
 -- 3. 이벤트 핸들러
@@ -78,5 +87,21 @@ upgradeProbEvent.OnServerInvoke = function(player)
 	local success, result = HeroManager.upgradeProb(player)
 	return { success = success, result = result }
 end
+
+-- 디버그: 배속 변경
+debugSetTimeScale.OnServerEvent:Connect(function(player, scale)
+	if type(scale) == "number" then
+		gameState:SetAttribute("TimeScale", scale)
+		print("[Debug] " .. player.Name .. "님이 배속을 " .. scale .. "배로 변경했습니다.")
+	end
+end)
+
+-- 디버그: 스테이지 점프
+debugJumpStage.OnServerEvent:Connect(function(player, stageNum)
+	if type(stageNum) == "number" then
+		print("[Debug] " .. player.Name .. "님이 스테이지 " .. stageNum .. "(으)로 점프를 요청했습니다.")
+		WaveManager.jumpToStage(stageNum)
+	end
+end)
 
 print("[Server] LuckLuck 시스템 준비 완료!")

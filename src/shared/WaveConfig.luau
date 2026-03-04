@@ -43,19 +43,10 @@ local function getPoolForStage(stage: number): { string }
 	return { "Slime" }
 end
 
--- 풀에서 몬스터 분배 (20마리를 풀에서 균등 분배)
-local function buildMonsterList(pool: { string }, totalCount: number): { { Type: string, Count: number } }
-	local counts = {}
-	for i = 1, totalCount do
-		local monsterType = pool[((i - 1) % #pool) + 1]
-		counts[monsterType] = (counts[monsterType] or 0) + 1
-	end
-
-	local result = {}
-	for mType, count in counts do
-		table.insert(result, { Type = mType, Count = count })
-	end
-	return result
+-- 스테이지에 맞는 단일 몬스터 타입 결정
+local function getSingleMonsterForStage(stage: number): string
+	local pool = getPoolForStage(stage)
+	return pool[((stage - 1) % #pool) + 1]
 end
 
 ---------------------------------------------
@@ -82,14 +73,16 @@ for stage = 1, 50 do
 		}
 	else
 		-- 일반 스테이지
-		local pool = getPoolForStage(stage)
+		local chosenType = getSingleMonsterForStage(stage)
 		-- 스테이지가 올라갈수록 스폰 간격 줄어듦 (기존 대비 2배 속도)
 		local spawnInterval = math.max(0.15, 0.75 - (stage * 0.01))
 
 		WaveConfig[stage] = {
 			IsBoss = false,
 			BossTimeLimit = 0,
-			Monsters = buildMonsterList(pool, MONSTERS_PER_NORMAL_STAGE),
+			Monsters = {
+				{ Type = chosenType, Count = MONSTERS_PER_NORMAL_STAGE }
+			},
 			SpawnInterval = spawnInterval,
 			RestTime = 5,
 		}
