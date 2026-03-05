@@ -36,7 +36,7 @@ function HeroGrid.findAvailableGrid(player: Player, rarity: string, subIndex: nu
 	-- 1. 먼저 배치할 수 있는 기존 그룹 탐색 (Rarity와 SubIndex가 모두 같아야 함)
 	for i = 1, 15 do
 		local cell = grids[player][i]
-		if cell and cell.Rarity == rarity and cell.SubIndex == subIndex and cell.Count < 3 then
+		if cell and cell.Rarity == rarity and tonumber(cell.SubIndex) == tonumber(subIndex) and cell.Count < 3 then
 			return i
 		end
 	end
@@ -64,7 +64,7 @@ function HeroGrid.addHeroToGrid(player: Player, index: number, rarity: string, s
 		return 1
 	end
 
-	if cell.Rarity == rarity and cell.SubIndex == subIndex then
+	if cell.Rarity == rarity and tonumber(cell.SubIndex) == tonumber(subIndex) then
 		cell.Count += 1
 		return cell.Count
 	end
@@ -110,6 +110,41 @@ function HeroGrid.removeHeroesFromGrid(player: Player, index: number, removeCoun
 	end
 	
 	return false
+end
+
+-- 격자에 영웅을 놓을 수 있는지 확인 (빈 칸이거나, 같은 등급/종류이면서 3마리 미만)
+function HeroGrid.canPlaceHero(player: Player, index: number, rarity: string, subIndex: number): boolean
+	if not grids[player] then return false end
+
+	local cell = grids[player][index]
+	-- 빈 칸이면 항상 허용
+	if not cell then return true end
+
+	-- 완전히 동일한 모델이면서 3마리 미만이면 허용
+	if cell.Rarity == rarity and tonumber(cell.SubIndex) == tonumber(subIndex) and cell.Count < 3 then
+		return true
+	end
+
+	return false
+end
+
+-- 격자에서 영웅 하나 꺼내기 (들기에 사용)
+function HeroGrid.takeOutHeroFromGrid(player: Player, index: number)
+	if not grids[player] then return nil end
+
+	local cell = grids[player][index]
+	if not cell then return nil end
+
+	local currentRarity = cell.Rarity
+	local currentSubIndex = cell.SubIndex
+
+	-- 하나 빼오고, 0마리면 지우기
+	cell.Count -= 1
+	if cell.Count <= 0 then
+		grids[player][index] = nil
+	end
+
+	return { Rarity = currentRarity, SubIndex = currentSubIndex }
 end
 
 -- 접속 종료 시 정리

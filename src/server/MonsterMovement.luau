@@ -106,6 +106,25 @@ function MonsterMovement.start()
 				continue
 			end
 
+			-- 스턴 버프 확인
+			local stunRemaining = monster:GetAttribute("StunRemaining") or 0
+			if stunRemaining > 0 then
+				monster:SetAttribute("StunRemaining", stunRemaining - dt)
+				
+				-- 스턴 시각 효과 (색상 변경 등, 임시 처리)
+				if monster:IsA("BasePart") then
+					monster.Color = Color3.fromRGB(255, 255, 0)
+				end
+				
+				i -= 1
+				continue
+			else
+				-- 스턴 풀리면 원래 색상으로 (원래 색상을 따로 저장해야하지만 단순 빨간색으로 롤백)
+				if monster:IsA("BasePart") then
+					monster.Color = Color3.fromRGB(200, 50, 50)
+				end
+			end
+
 			-- 현재 목표 웨이포인트 (순환)
 			local wpIndex = ((entry.WaypointIndex - 1) % #waypoints) + 1
 			local targetWP = waypoints[wpIndex]

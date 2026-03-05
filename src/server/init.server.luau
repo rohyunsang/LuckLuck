@@ -12,6 +12,7 @@ local WaveManager = require(script.WaveManager)
 local HeroManager = require(script.HeroManager)
 local MapSetup = require(script.MapSetup)
 local DataManager = require(script.DataManager)
+local CombatManager = require(script.CombatManager)
 
 --------------------------------------------------------------------------------
 -- 1. 맵 초기화 & 외부 데이터 (시트) 연동
@@ -131,5 +132,10 @@ debugJumpStage.OnServerEvent:Connect(function(player, stageNum)
 		WaveManager.jumpToStage(stageNum)
 	end
 end)
+
+--------------------------------------------------------------------------------
+-- 4. 게임 루프 시작
+--------------------------------------------------------------------------------
+CombatManager.start()
 
 print("[Server] LuckLuck 시스템 준비 완료!")

@@ -8,6 +8,14 @@ local HeroConfig = {
 	MaxProbLevel = 10,     -- 최대 확률 레벨
 }
 
+-- 영웅 매각 시 반환하는 골드
+HeroConfig.SellPrices = {
+	Common = 5,
+	Rare = 15,
+	Epic = 50,
+	Legend = 150,
+}
+
 -- 확률표 (단위: 백분율 %)
 -- Common(일반), Rare(희귀), Epic(영웅), Legend(전설)
 HeroConfig.Probabilities = {
@@ -58,6 +66,28 @@ HeroConfig.Visuals = {
 		[4] = { Color = Color3.fromRGB(255, 200, 50), Shape = "Wedge" },
 		[5] = { Color = Color3.fromRGB(255, 200, 50), Composite = true },
 	},
+}
+
+-- 등급별 데미지 배수
+HeroConfig.RarityMultiplier = {
+	Common = 1,
+	Rare = 3,
+	Epic = 10,
+	Legend = 30,
+}
+
+-- 공격 타입별 전투 스탯
+-- 1: 근접 단일 (Block)
+-- 2: 근접 범위 (Ball)
+-- 3: 원거리 단일 (Cylinder)
+-- 4: 원거리 범위 (Wedge)
+-- 5: 스턴 (Composite)
+HeroConfig.CombatStats = {
+	[1] = { Type = "MeleeSingle",   Range = 15, Cooldown = 1.0, BaseDamage = 20, SplashRadius = 0, StunDuration = 0 },
+	[2] = { Type = "MeleeSplash",   Range = 15, Cooldown = 1.5, BaseDamage = 15, SplashRadius = 8, StunDuration = 0 },
+	[3] = { Type = "RangedSingle",  Range = 40, Cooldown = 1.0, BaseDamage = 15, SplashRadius = 0, StunDuration = 0 },
+	[4] = { Type = "RangedSplash",  Range = 40, Cooldown = 2.0, BaseDamage = 10, SplashRadius = 10, StunDuration = 0 },
+	[5] = { Type = "StunAttack",    Range = 25, Cooldown = 3.0, BaseDamage = 5,  SplashRadius = 0, StunDuration = 1.5 },
 }
 
 return HeroConfig
