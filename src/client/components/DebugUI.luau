@@ -35,7 +35,7 @@ local function DebugUI()
 			Title = e("TextLabel", {
 				Size = UDim2.new(1, 0, 0, 20),
 				BackgroundTransparency = 1,
-				Text = "[디버그 컨트롤]",
+				Text = "[Debug Control]",
 				TextColor3 = Color3.fromRGB(255, 255, 255),
 				Font = Enum.Font.GothamBold,
 				TextSize = 14,

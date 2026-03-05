@@ -23,12 +23,41 @@ HeroConfig.Probabilities = {
 	[10] = { Common = 70.0, Rare = 20.0, Epic = 9.0, Legend = 1.0 },
 }
 
--- 렌더링용 외형 (색상)
+-- 렌더링용 외형 (색상 및 모양 패턴)
+-- 패턴 1: 직사각형(Block)
+-- 패턴 2: 동그라미(Ball)
+-- 패턴 3: 원기둥(Cylinder)
+-- 패턴 4: 세모(Wedge)
+-- 패턴 5: 네모+동그라미 (Composite)
 HeroConfig.Visuals = {
-	Common = { Color = Color3.fromRGB(150, 150, 150) },     -- 회색
-	Rare   = { Color = Color3.fromRGB(50, 100, 255) },      -- 파란색
-	Epic   = { Color = Color3.fromRGB(150, 50, 255) },      -- 보라색
-	Legend = { Color = Color3.fromRGB(255, 200, 50) },      -- 노란색(금색)
+	Common = {
+		[1] = { Color = Color3.fromRGB(150, 150, 150), Shape = Enum.PartType.Block },
+		[2] = { Color = Color3.fromRGB(150, 150, 150), Shape = Enum.PartType.Ball },
+		[3] = { Color = Color3.fromRGB(150, 150, 150), Shape = Enum.PartType.Cylinder },
+		[4] = { Color = Color3.fromRGB(150, 150, 150), Shape = "Wedge" },
+		[5] = { Color = Color3.fromRGB(150, 150, 150), Composite = true },
+	},
+	Rare = {
+		[1] = { Color = Color3.fromRGB(50, 100, 255), Shape = Enum.PartType.Block },
+		[2] = { Color = Color3.fromRGB(50, 100, 255), Shape = Enum.PartType.Ball },
+		[3] = { Color = Color3.fromRGB(50, 100, 255), Shape = Enum.PartType.Cylinder },
+		[4] = { Color = Color3.fromRGB(50, 100, 255), Shape = "Wedge" },
+		[5] = { Color = Color3.fromRGB(50, 100, 255), Composite = true },
+	},
+	Epic = {
+		[1] = { Color = Color3.fromRGB(150, 50, 255), Shape = Enum.PartType.Block },
+		[2] = { Color = Color3.fromRGB(150, 50, 255), Shape = Enum.PartType.Ball },
+		[3] = { Color = Color3.fromRGB(150, 50, 255), Shape = Enum.PartType.Cylinder },
+		[4] = { Color = Color3.fromRGB(150, 50, 255), Shape = "Wedge" },
+		[5] = { Color = Color3.fromRGB(150, 50, 255), Composite = true },
+	},
+	Legend = {
+		[1] = { Color = Color3.fromRGB(255, 200, 50), Shape = Enum.PartType.Block },
+		[2] = { Color = Color3.fromRGB(255, 200, 50), Shape = Enum.PartType.Ball },
+		[3] = { Color = Color3.fromRGB(255, 200, 50), Shape = Enum.PartType.Cylinder },
+		[4] = { Color = Color3.fromRGB(255, 200, 50), Shape = "Wedge" },
+		[5] = { Color = Color3.fromRGB(255, 200, 50), Composite = true },
+	},
 }
 
 return HeroConfig

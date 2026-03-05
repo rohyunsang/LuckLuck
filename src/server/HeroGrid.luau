@@ -30,13 +30,13 @@ function HeroGrid.getTotalHeroCount(player: Player): number
 end
 
 -- 빈 칸 찾기 (규칙: 제일 왼쪽 1번부터 탐색, 같은 등급이고 3마리 미만인 칸 또는 아예 비어있는 칸)
-function HeroGrid.findAvailableGrid(player: Player, rarity: string): number?
+function HeroGrid.findAvailableGrid(player: Player, rarity: string, subIndex: number): number?
 	if not grids[player] then return nil end
 
-	-- 1. 먼저 배치할 수 있는 기존 그룹 탐색
+	-- 1. 먼저 배치할 수 있는 기존 그룹 탐색 (Rarity와 SubIndex가 모두 같아야 함)
 	for i = 1, 15 do
 		local cell = grids[player][i]
-		if cell and cell.Rarity == rarity and cell.Count < 3 then
+		if cell and cell.Rarity == rarity and cell.SubIndex == subIndex and cell.Count < 3 then
 			return i
 		end
 	end
@@ -53,25 +53,63 @@ function HeroGrid.findAvailableGrid(player: Player, rarity: string): number?
 end
 
 -- 격자에 영웅 기록 (추가 성공 시 현재 칸의 마릿수 반환)
-function HeroGrid.addHeroToGrid(player: Player, index: number, rarity: string): number
+function HeroGrid.addHeroToGrid(player: Player, index: number, rarity: string, subIndex: number): number
 	if not grids[player] then
 		HeroGrid.initPlayerGrid(player)
 	end
 
 	local cell = grids[player][index]
 	if not cell then
-		grids[player][index] = { Rarity = rarity, Count = 1 }
+		grids[player][index] = { Rarity = rarity, SubIndex = subIndex, Count = 1 }
 		return 1
 	end
 
-	if cell.Rarity == rarity then
+	if cell.Rarity == rarity and cell.SubIndex == subIndex then
 		cell.Count += 1
 		return cell.Count
 	end
 
 	-- 로직 상 여기 오면 에러
-	warn("[HeroGrid] 잘못된 등급이 들어가 있습니다!")
+	warn("[HeroGrid] 잘못된 등급 또는 SubIndex가 들어가 있습니다!")
 	return -1
+end
+
+-- 합성 가능한 영웅 목록 반환 (같은 Rarity, 같은 SubIndex가 3마리 모인 GridIndex 목록)
+function HeroGrid.getMergeableGrids(player: Player)
+	local mergeables = {}
+	if not grids[player] then return mergeables end
+
+	for i = 1, 15 do
+		local cell = grids[player][i]
+		-- Legend는 합성 불가
+		if cell and cell.Count >= 3 and cell.Rarity ~= "Legend" then
+			table.insert(mergeables, {
+				GridIndex = i,
+				Rarity = cell.Rarity,
+				SubIndex = cell.SubIndex
+			})
+		end
+	end
+
+	return mergeables
+end
+
+-- 격자에서 영웅 삭제 (합성 등에 사용)
+function HeroGrid.removeHeroesFromGrid(player: Player, index: number, removeCount: number)
+	if not grids[player] then return false end
+	
+	local cell = grids[player][index]
+	if not cell then return false end
+
+	if cell.Count >= removeCount then
+		cell.Count -= removeCount
+		if cell.Count <= 0 then
+			grids[player][index] = nil
+		end
+		return true
+	end
+	
+	return false
 end
 
 -- 접속 종료 시 정리

@@ -13,6 +13,7 @@ local ReactRoblox = require(ReplicatedStorage.Packages.ReactRoblox)
 local SpawnButton = require(script.components.SpawnButton)
 local GameStatusHUD = require(script.components.GameStatusHUD)
 local HeroSummonUI = require(script.components.HeroSummonUI)
+local HeroMergeUI = require(script.components.HeroMergeUI)
 local DebugUI = require(script.components.DebugUI)
 
 local e = React.createElement
@@ -23,6 +24,7 @@ local function App()
 		StatusHUD = e(GameStatusHUD),
 		SpawnBtn = e(SpawnButton),
 		SummonUI = e(HeroSummonUI),
+		MergeUI = e(HeroMergeUI),
 		DebugPanel = e(DebugUI),
 	})
 end

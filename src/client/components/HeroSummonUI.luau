@@ -100,7 +100,7 @@ local function HeroSummonUI()
 					Size = UDim2.new(0.5, 0, 1, 0),
 					Position = UDim2.new(0.5, 0, 0, 0),
 					BackgroundTransparency = 1,
-					Text = "🧑 영웅: " .. heroCount .. " / 25",
+					Text = "🧑 Heroes: " .. heroCount .. " / 25",
 					TextColor3 = (heroCount >= 25) and Color3.fromRGB(255, 80, 80) or Color3.fromRGB(200, 200, 255),
 					Font = Enum.Font.GothamBold,
 					TextSize = 18,
@@ -113,10 +113,10 @@ local function HeroSummonUI()
 				Size = UDim2.new(1, 0, 0, 30),
 				Position = UDim2.new(0, 0, 0, 35),
 				BackgroundTransparency = 1,
-				Text = lastSummon and ("✅ 획득: " .. lastSummon) or "영웅을 소환하세요!",
-				TextColor3 = if lastSummon == "Legend" then Color3.fromRGB(255, 100, 100)
-							 elseif lastSummon == "Epic" then Color3.fromRGB(200, 100, 255)
-							 elseif lastSummon == "Rare" then Color3.fromRGB(100, 150, 255)
+				Text = lastSummon and ("✅ Acquired: " .. lastSummon) or "Summon Heroes!",
+				TextColor3 = if lastSummon and string.find(lastSummon, "Legend") then Color3.fromRGB(255, 100, 100)
+							 elseif lastSummon and string.find(lastSummon, "Epic") then Color3.fromRGB(200, 100, 255)
+							 elseif lastSummon and string.find(lastSummon, "Rare") then Color3.fromRGB(100, 150, 255)
 							 else Color3.fromRGB(200, 200, 200),
 				Font = Enum.Font.GothamBold,
 				TextSize = 18,
@@ -128,7 +128,7 @@ local function HeroSummonUI()
 				Size = UDim2.new(1, 0, 0, 50),
 				Position = UDim2.new(0, 0, 0, 75),
 				BackgroundColor3 = (gold >= HeroConfig.SummonCost) and Color3.fromRGB(50, 150, 255) or Color3.fromRGB(80, 80, 80),
-				Text = "✨ 영웅 소환 (" .. HeroConfig.SummonCost .. "G)",
+				Text = "✨ Summon Hero (" .. HeroConfig.SummonCost .. "G)",
 				TextColor3 = Color3.fromRGB(255, 255, 255),
 				Font = Enum.Font.GothamBold,
 				TextSize = 20,
@@ -142,7 +142,7 @@ local function HeroSummonUI()
 				Position = UDim2.new(0, 0, 0, 135),
 				BackgroundColor3 = (probLevel < HeroConfig.MaxProbLevel and gold >= HeroConfig.UpgradeCost) 
 								   and Color3.fromRGB(200, 100, 50) or Color3.fromRGB(80, 80, 80),
-				Text = "⬆ 확률 업 Lv." .. probLevel .. " (" .. HeroConfig.UpgradeCost .. "G)",
+				Text = "⬆ Upgrade Prob Lv." .. probLevel .. " (" .. HeroConfig.UpgradeCost .. "G)",
 				TextColor3 = Color3.fromRGB(255, 255, 255),
 				Font = Enum.Font.GothamBold,
 				TextSize = 16,
@@ -155,7 +155,7 @@ local function HeroSummonUI()
 				Size = UDim2.new(1, 0, 0, 20),
 				Position = UDim2.new(0, 0, 0, 185),
 				BackgroundTransparency = 1,
-				Text = string.format("일반 %.1f%% | 희귀 %.1f%% | 영웅 %.1f%% | 전설 %.1f%%", 
+				Text = string.format("Common %.1f%% | Rare %.1f%% | Epic %.1f%% | Legend %.1f%%", 
 					probs.Common, probs.Rare, probs.Epic, probs.Legend),
 				TextColor3 = Color3.fromRGB(180, 180, 180),
 				Font = Enum.Font.Gotham,

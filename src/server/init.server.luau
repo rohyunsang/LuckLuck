@@ -50,6 +50,14 @@ local upgradeProbEvent = Instance.new("RemoteFunction")
 upgradeProbEvent.Name = "UpgradeProbEvent"
 upgradeProbEvent.Parent = ReplicatedStorage
 
+local getMergeablesEvent = Instance.new("RemoteFunction")
+getMergeablesEvent.Name = "GetMergeablesEvent"
+getMergeablesEvent.Parent = ReplicatedStorage
+
+local mergeHeroEvent = Instance.new("RemoteFunction")
+mergeHeroEvent.Name = "MergeHeroEvent"
+mergeHeroEvent.Parent = ReplicatedStorage
+
 local debugSetTimeScale = Instance.new("RemoteEvent")
 debugSetTimeScale.Name = "DebugSetTimeScale"
 debugSetTimeScale.Parent = ReplicatedStorage
@@ -93,6 +101,18 @@ end
 -- 확률 강화 요청
 upgradeProbEvent.OnServerInvoke = function(player)
 	local success, result = HeroManager.upgradeProb(player)
+	return { success = success, result = result }
+end
+
+-- 합성 가능 목록 조회
+getMergeablesEvent.OnServerInvoke = function(player)
+	local HeroGrid = require(script.HeroGrid)
+	return HeroGrid.getMergeableGrids(player)
+end
+
+-- 합성 요청
+mergeHeroEvent.OnServerInvoke = function(player, gridIndex)
+	local success, result = HeroManager.mergeHero(player, gridIndex)
 	return { success = success, result = result }
 end
 

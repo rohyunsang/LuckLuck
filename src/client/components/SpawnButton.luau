@@ -46,7 +46,7 @@ local function SpawnButton()
 		ResetOnSpawn = false,
 	}, {
 		Button = e("TextButton", {
-			Text = if isDisabled then "진행 중..." else "⚔ 웨이브 시작",
+			Text = if isDisabled then "In Progress..." else "⚔ Start Wave",
 			Size = UDim2.new(0, 240, 0, 64),
 			Position = UDim2.new(0.5, 0, 0.9, 0),
 			AnchorPoint = Vector2.new(0.5, 1),

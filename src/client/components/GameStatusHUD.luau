@@ -54,9 +54,9 @@ local function GameStatusHUD()
 	-- 상태 텍스트 결정
 	local stageText
 	if isGameOver then
-		stageText = "💀 게임 오버"
+		stageText = "💀 Game Over"
 	elseif stageCleared then
-		stageText = "🎉 올 클리어!"
+		stageText = "🎉 All Clear!"
 	elseif isBossStage then
 		stageText = "🔥 BOSS  " .. currentWave .. " / " .. totalWaves
 	else
@@ -169,7 +169,7 @@ local function GameStatusHUD()
 				BackgroundTransparency = 1,
 				Text = if isGameOver or stageCleared
 					then ""
-					else "👾 남은 몬스터: " .. monsterCount,
+					else "👾 Remaining Monsters: " .. monsterCount,
 				TextColor3 = Color3.fromRGB(180, 220, 255),
 				Font = Enum.Font.GothamMedium,
 				TextSize = 16,
