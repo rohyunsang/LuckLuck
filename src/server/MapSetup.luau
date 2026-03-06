@@ -16,10 +16,10 @@ function MapSetup.init()
 
 	-- 15칸 영웅 배치 영역 생성 (가로 5줄, 세로 3줄 형태)
 	-- 기존 단일 HeroZone 대신 GridZone_1 부터 GridZone_15 가 생성됨
-	local originX = -40 -- 시작 X좌표 (맵 형태에 맞춰 조정 가능)
+	local originX = -20 -- 시작 X좌표 (맵 형태에 맞춰 조정 가능)
 	local originZ = 0   -- 시작 Z좌표
-	local spacingX = 20 -- 각 칸의 X 간격 (크기 18 + 여백 2)
-	local spacingZ = 20 -- 각 칸의 Z 간격
+	local spacingX = 10 -- 각 칸의 X 간격 (크기 9 + 여백 1)
+	local spacingZ = 10 -- 각 칸의 Z 간격
 
 	local function getGridName(index: number) return "GridZone_" .. index end
 
@@ -30,7 +30,7 @@ function MapSetup.init()
 		if not gridPart then
 			gridPart = Instance.new("Part")
 			gridPart.Name = gridName
-			gridPart.Size = Vector3.new(18, 0.5, 18) -- 한 칸의 물리적 크기
+			gridPart.Size = Vector3.new(9, 0.5, 9) -- 한 칸의 물리적 크기
 			
 			-- 5x3 배치 로직 (1~5번은 1열, 6~10번은 2열, ...)
 			-- 1번 칸이 제일 왼쪽 상단이 되도록 계산

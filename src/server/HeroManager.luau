@@ -47,11 +47,11 @@ function HeroManager._repositionHeroesInGrid(player: Player, gridIndex: number)
 	for i, heroPart in ipairs(heroes) do
 		local offsetX = 0
 		if count == 2 then
-			offsetX = (i == 1) and -4 or 4
+			offsetX = (i == 1) and -2 or 2
 		elseif count >= 3 then
-			if i == 1 then offsetX = -5
+			if i == 1 then offsetX = -2.5
 			elseif i == 2 then offsetX = 0
-			elseif i == 3 then offsetX = 5
+			elseif i == 3 then offsetX = 2.5
 			end
 		end
 
@@ -138,7 +138,7 @@ function HeroManager.summonHero(player: Player)
 			heroPart = Instance.new("Model")
 			
 			local basePart = Instance.new("Part")
-			basePart.Size = Vector3.new(4, 2, 4)
+			basePart.Size = Vector3.new(2, 1, 2)
 			basePart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (basePart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			basePart.Anchored = true
 			basePart.CanCollide = false
@@ -148,8 +148,8 @@ function HeroManager.summonHero(player: Player)
 
 			local topPart = Instance.new("Part")
 			topPart.Shape = Enum.PartType.Ball
-			topPart.Size = Vector3.new(3, 3, 3)
-			topPart.Position = basePart.Position + Vector3.new(0, 2.5, 0)
+			topPart.Size = Vector3.new(1.5, 1.5, 1.5)
+			topPart.Position = basePart.Position + Vector3.new(0, 1.25, 0)
 			topPart.Anchored = true
 			topPart.CanCollide = false
 			topPart.Material = Enum.Material.Neon
@@ -159,7 +159,7 @@ function HeroManager.summonHero(player: Player)
 			heroPart.PrimaryPart = basePart
 		else
 			heroPart = Instance.new("Part")
-			heroPart.Size = Vector3.new(4, 4, 4)
+			heroPart.Size = Vector3.new(2, 2, 2)
 			heroPart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (heroPart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			heroPart.Anchored = true
 			heroPart.CanCollide = false
@@ -319,7 +319,7 @@ function HeroManager.mergeHero(player: Player, gridIndex: number)
 			heroPart = Instance.new("Model")
 			
 			local basePart = Instance.new("Part")
-			basePart.Size = Vector3.new(4, 2, 4)
+			basePart.Size = Vector3.new(2, 1, 2)
 			basePart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (basePart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			basePart.Anchored = true
 			basePart.CanCollide = false
@@ -329,8 +329,8 @@ function HeroManager.mergeHero(player: Player, gridIndex: number)
 
 			local topPart = Instance.new("Part")
 			topPart.Shape = Enum.PartType.Ball
-			topPart.Size = Vector3.new(3, 3, 3)
-			topPart.Position = basePart.Position + Vector3.new(0, 2.5, 0)
+			topPart.Size = Vector3.new(1.5, 1.5, 1.5)
+			topPart.Position = basePart.Position + Vector3.new(0, 1.25, 0)
 			topPart.Anchored = true
 			topPart.CanCollide = false
 			topPart.Material = Enum.Material.Neon
@@ -340,7 +340,7 @@ function HeroManager.mergeHero(player: Player, gridIndex: number)
 			heroPart.PrimaryPart = basePart
 		else
 			heroPart = Instance.new("Part")
-			heroPart.Size = Vector3.new(4, 4, 4)
+			heroPart.Size = Vector3.new(2, 2, 2)
 			heroPart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (heroPart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			heroPart.Anchored = true
 			heroPart.CanCollide = false
@@ -479,7 +479,7 @@ function HeroManager.pickupHero(player: Player, gridIndex: number, heroPart: Ins
 				end
 
 				-- 머리 위로 이동
-				local offset = Vector3.new(0, 3, 0)
+				local offset = Vector3.new(0, 1.5, 0)
 				if heldModel:IsA("Model") then
 					heldModel:PivotTo(head.CFrame * CFrame.new(offset))
 				else
@@ -546,7 +546,7 @@ function HeroManager.placeHero(player: Player, gridIndex: number)
 		if visualData.Composite then
 			heroPart = Instance.new("Model")
 			local basePart = Instance.new("Part")
-			basePart.Size = Vector3.new(4, 2, 4)
+			basePart.Size = Vector3.new(2, 1, 2)
 			basePart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (basePart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			basePart.Anchored = true; basePart.CanCollide = false
 			basePart.Material = Enum.Material.Neon; basePart.Color = visualData.Color
@@ -554,8 +554,8 @@ function HeroManager.placeHero(player: Player, gridIndex: number)
 
 			local topPart = Instance.new("Part")
 			topPart.Shape = Enum.PartType.Ball
-			topPart.Size = Vector3.new(3, 3, 3)
-			topPart.Position = basePart.Position + Vector3.new(0, 2.5, 0)
+			topPart.Size = Vector3.new(1.5, 1.5, 1.5)
+			topPart.Position = basePart.Position + Vector3.new(0, 1.25, 0)
 			topPart.Anchored = true; topPart.CanCollide = false
 			topPart.Material = Enum.Material.Neon; topPart.Color = visualData.Color
 			topPart.Parent = heroPart
@@ -563,7 +563,7 @@ function HeroManager.placeHero(player: Player, gridIndex: number)
 			heroPart.PrimaryPart = basePart
 		else
 			heroPart = Instance.new("Part")
-			heroPart.Size = Vector3.new(4, 4, 4)
+			heroPart.Size = Vector3.new(2, 2, 2)
 			heroPart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (heroPart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
 			heroPart.Anchored = true; heroPart.CanCollide = false
 			heroPart.Material = Enum.Material.Neon; heroPart.Color = visualData.Color
@@ -681,7 +681,7 @@ function HeroManager._attachHeroPrompts(player: Player, gridIndex: number, heroP
 	pickupPrompt.RequiresLineOfSight = false
 	pickupPrompt.HoldDuration = 0
 	pickupPrompt.MaxActivationDistance = 15
-	pickupPrompt.UIOffset = Vector2.new(0, 30) -- 위로 살짝 띄움
+	pickupPrompt.UIOffset = Vector2.new(0, 15) -- 위로 살짝 띄움
 	pickupPrompt.Triggered:Connect(function(promptPlayer)
 		if promptPlayer == player then
 			HeroManager.pickupHero(player, gridIndex, heroPart)
@@ -698,7 +698,7 @@ function HeroManager._attachHeroPrompts(player: Player, gridIndex: number, heroP
 	sellPrompt.KeyboardKeyCode = Enum.KeyCode.R -- R키로 할당
 	sellPrompt.HoldDuration = 0.5 -- 강제로 0.5초 꾹 눌러야 팔리도록
 	sellPrompt.MaxActivationDistance = 15
-	sellPrompt.UIOffset = Vector2.new(0, -30) -- 아래로 살짝 내림
+	sellPrompt.UIOffset = Vector2.new(0, -15) -- 아래로 살짝 내림
 	sellPrompt.Triggered:Connect(function(promptPlayer)
 		if promptPlayer == player then
 			HeroManager.sellHero(player, gridIndex, heroPart)
