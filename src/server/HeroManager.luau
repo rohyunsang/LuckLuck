@@ -25,6 +25,18 @@ function HeroManager.initPlayer(player: Player)
 
 	-- 격자 칸 내리기 상호작용 프롬프트 셋업 (서버 통제)
 	HeroManager._setupGridPrompts(player)
+
+	-- 소환 횟수 초기화 (비용 증가용)
+	if not player:GetAttribute("SummonCount") then
+		player:SetAttribute("SummonCount", 0)
+	end
+end
+
+-- 동적 소환 비용 계산
+function HeroManager.getSummonCost(player: Player)
+	local count = player:GetAttribute("SummonCount") or 0
+	-- 기본 20골드 시작, 뽑을 때마다 5골드씩 증가
+	return 20 + (count * 5)
 end
 
 -- 한 칸 안의 영웅들을 예쁘게 정렬
@@ -100,7 +112,7 @@ function HeroManager.summonHero(player: Player)
 	end
 
 	local gold = player:GetAttribute("Gold") or 0
-	local cost = HeroConfig.SummonCost
+	local cost = HeroManager.getSummonCost(player)
 
 	if gold < cost then
 		-- 골드 부족
@@ -199,7 +211,12 @@ function HeroManager.summonHero(player: Player)
 	
 	-- 전체 마릿수 변경을 클라이언트가 알 수 있도록 (UI에서 사용)
 	player:SetAttribute("HeroCount", totalCount + 1)
+	
+	-- 소환 횟수 증가 (다음 소환 비용 증가)
+	local summonCount = player:GetAttribute("SummonCount") or 0
+	player:SetAttribute("SummonCount", summonCount + 1)
 
+	HeroManager.updateSynergies(player)
 	return true, rarity .. " " .. subIndex
 end
 
@@ -224,6 +241,86 @@ function HeroManager.upgradeProb(player: Player)
 	print("[HeroManager] " .. player.Name .. " 확률 업그레이드! 현재 Lv. " .. (level + 1))
 
 	return true, level + 1
+end
+
+-- 디버그 전용: 지정 영웅 소환 (골드 소모 없음, 제약조건 무시 가능)
+function HeroManager.debugSummonHero(player: Player, rarity: string, subIndex: number)
+	-- 최대 소환 수 체크 (편의상 제한은 유지)
+	local totalCount = HeroGrid.getTotalHeroCount(player)
+	if totalCount >= 25 then
+		return false, "Max Hero Limit Reached (25/25)"
+	end
+
+	-- 격자 빈칸 확인
+	local gridIndex = HeroGrid.findAvailableGrid(player, rarity, subIndex)
+	if not gridIndex then
+		return false, "No available grid slots"
+	end
+
+	-- 격자에 기록 및 해당 칸 안에서의 순번
+	local countInGrid = HeroGrid.addHeroToGrid(player, gridIndex, rarity, subIndex)
+
+	-- 실제 맵(3D 파트) 스폰 처리
+	local gridZone = workspace:FindFirstChild("Map") and workspace.Map:FindFirstChild("GridZone_" .. gridIndex)
+	if gridZone then
+		local zonePos = gridZone.Position
+		local offsetX = 0
+		
+		local visualData = HeroConfig.Visuals[rarity][subIndex]
+		local heroPart
+		
+		if visualData.Composite then
+			heroPart = Instance.new("Model")
+			local basePart = Instance.new("Part")
+			basePart.Size = Vector3.new(2, 1, 2)
+			basePart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (basePart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
+			basePart.Anchored = true; basePart.CanCollide = false
+			basePart.Material = Enum.Material.Neon; basePart.Color = visualData.Color
+			basePart.Parent = heroPart
+
+			local topPart = Instance.new("Part")
+			topPart.Shape = Enum.PartType.Ball
+			topPart.Size = Vector3.new(1.5, 1.5, 1.5)
+			topPart.Position = basePart.Position + Vector3.new(0, 1.25, 0)
+			topPart.Anchored = true; topPart.CanCollide = false
+			topPart.Material = Enum.Material.Neon; topPart.Color = visualData.Color
+			topPart.Parent = heroPart
+
+			heroPart.PrimaryPart = basePart
+		else
+			heroPart = Instance.new("Part")
+			heroPart.Size = Vector3.new(2, 2, 2)
+			heroPart.Position = Vector3.new(zonePos.X + offsetX, zonePos.Y + (heroPart.Size.Y / 2) + (gridZone.Size.Y / 2), zonePos.Z)
+			heroPart.Anchored = true; heroPart.CanCollide = false
+			heroPart.Material = Enum.Material.Neon; heroPart.Color = visualData.Color
+			
+			if typeof(visualData.Shape) == "EnumItem" then heroPart.Shape = visualData.Shape
+			elseif visualData.Shape == "Wedge" then
+				local wedge = Instance.new("WedgePart")
+				wedge.Size = heroPart.Size; wedge.Position = heroPart.Position
+				wedge.Anchored = true; wedge.CanCollide = false
+				wedge.Material = Enum.Material.Neon; wedge.Color = visualData.Color
+				heroPart = wedge
+			end
+		end
+
+		heroPart.Name = "Hero_" .. rarity .. "_" .. subIndex
+		heroPart:SetAttribute("Owner", player.Name)
+		heroPart:SetAttribute("Rarity", rarity)
+		heroPart:SetAttribute("SubIndex", subIndex)
+		heroPart.Parent = gridZone
+		
+		-- 정렬 업데이트
+		HeroManager._repositionHeroesInGrid(player, gridIndex)
+
+		-- 상호작용 프롬프트 부착 (들기, 판매)
+		HeroManager._attachHeroPrompts(player, gridIndex, heroPart, rarity, subIndex)
+	end
+
+	print("[DEBUG] " .. player.Name .. " 디버그 소환: " .. rarity .. "-" .. subIndex)
+	
+	player:SetAttribute("HeroCount", totalCount + 1)
+	return true, rarity .. " " .. subIndex
 end
 
 -- 영웅 합성
@@ -381,6 +478,7 @@ function HeroManager.mergeHero(player: Player, gridIndex: number)
 
 	print("[HeroManager] " .. player.Name .. " 합성 완료! " .. rarity .. "x3 -> " .. nextRarity .. "-" .. nextSubIndex)
 
+	HeroManager.updateSynergies(player)
 	return true, nextRarity .. " " .. nextSubIndex
 end
 
@@ -415,8 +513,8 @@ function HeroManager._setupGridPrompts(player: Player)
 			part.Parent = holder
 
 			local prompt = Instance.new("ProximityPrompt")
-			prompt.ActionText = "내리기"
-			prompt.ObjectText = "격자 " .. i
+			prompt.ActionText = "Place" -- 나중에 자동 번역기 대응
+			prompt.ObjectText = "Grid " .. i
 			-- 초기엔 비활성화
 			prompt.Enabled = false 
 			prompt.RequiresLineOfSight = false
@@ -506,11 +604,11 @@ function HeroManager.pickupHero(player: Player, gridIndex: number, heroPart: Ins
 	player:SetAttribute("HoldingHero_Rarity", rarity)
 	player:SetAttribute("HoldingHero_SubIndex", subIndex)
 	
-	-- 들고 있으므로 '내리기' 프롬프트 활성화하고 '들기' 프롬프트는 끄기
 	HeroManager._togglePutDownPrompts(player, true)
 	HeroManager._toggleOtherPickupPrompts(player, false)
 
 	print("[HeroManager] " .. player.Name .. " 영웅 줍기: " .. rarity .. "-" .. subIndex)
+	HeroManager.updateSynergies(player)
 	return true
 end
 
@@ -602,11 +700,11 @@ function HeroManager.placeHero(player: Player, gridIndex: number)
 	player:SetAttribute("HoldingHero_Rarity", nil)
 	player:SetAttribute("HoldingHero_SubIndex", nil)
 	
-	-- 들고 있는게 없어졌으므로 '내리기' 끄고 '들기' 다시 켜기
 	HeroManager._togglePutDownPrompts(player, false)
 	HeroManager._toggleOtherPickupPrompts(player, true)
 
 	print("[HeroManager] " .. player.Name .. " 영웅 배치: " .. rarity .. "-" .. subIndex .. " (배치 구역: " .. gridIndex .. ")")
+	HeroManager.updateSynergies(player)
 	return true
 end
 
@@ -676,12 +774,12 @@ function HeroManager._attachHeroPrompts(player: Player, gridIndex: number, heroP
 
 	-- 들기 프롬프트
 	local pickupPrompt = Instance.new("ProximityPrompt")
-	pickupPrompt.ActionText = "들기"
+	pickupPrompt.ActionText = "Pick up" -- 나중에 자동 번역기 대응
 	pickupPrompt.ObjectText = rarity .. " " .. subIndex
 	pickupPrompt.RequiresLineOfSight = false
 	pickupPrompt.HoldDuration = 0
 	pickupPrompt.MaxActivationDistance = 15
-	pickupPrompt.UIOffset = Vector2.new(0, 15) -- 위로 살짝 띄움
+	pickupPrompt.UIOffset = Vector2.new(0, 40) -- 위로 더 띄움
 	pickupPrompt.Triggered:Connect(function(promptPlayer)
 		if promptPlayer == player then
 			HeroManager.pickupHero(player, gridIndex, heroPart)
@@ -692,13 +790,13 @@ function HeroManager._attachHeroPrompts(player: Player, gridIndex: number, heroP
 	-- 판매 프롬프트
 	local sellPrice = HeroConfig.SellPrices[rarity] or 5
 	local sellPrompt = Instance.new("ProximityPrompt")
-	sellPrompt.ActionText = "판매 (+" .. sellPrice .. "G)"
+	sellPrompt.ActionText = "Sell (+" .. sellPrice .. "G)" -- 나중에 자동 번역기 대응
 	sellPrompt.ObjectText = rarity .. " " .. subIndex
 	sellPrompt.RequiresLineOfSight = false
 	sellPrompt.KeyboardKeyCode = Enum.KeyCode.R -- R키로 할당
 	sellPrompt.HoldDuration = 0.5 -- 강제로 0.5초 꾹 눌러야 팔리도록
 	sellPrompt.MaxActivationDistance = 15
-	sellPrompt.UIOffset = Vector2.new(0, -15) -- 아래로 살짝 내림
+	sellPrompt.UIOffset = Vector2.new(0, -40) -- 아래로 더 내림
 	sellPrompt.Triggered:Connect(function(promptPlayer)
 		if promptPlayer == player then
 			HeroManager.sellHero(player, gridIndex, heroPart)
@@ -737,7 +835,77 @@ function HeroManager.sellHero(player: Player, gridIndex: number, heroPart: Insta
 	
 	print("[HeroManager] " .. player.Name .. " 영웅 판매: " .. rarity .. " " .. subIndex .. " (+" .. sellPrice .. " 골드)")
 	
+	HeroManager.updateSynergies(player)
 	return true
+end
+
+-- 시너지 업데이트 로직
+function HeroManager.updateSynergies(player: Player)
+	local activeCounts = {
+		Types = {}, -- { ["Melee"] = 5, ... }
+		Rarities = {} -- { ["Rare"] = 3, ... }
+	}
+
+	-- 1. 모든 격자 순회하며 배치된 영웅 카운트
+	local map = workspace:FindFirstChild("Map")
+	if not map then return end
+
+	for _, zone in map:GetChildren() do
+		if string.match(zone.Name, "GridZone") then
+			for _, child in zone:GetChildren() do
+				if child:GetAttribute("Owner") == player.Name and child.Name:match("^Hero_") then
+					local rarity = child:GetAttribute("Rarity")
+					local subIndex = child:GetAttribute("SubIndex")
+					local stats = HeroConfig.CombatStats[subIndex]
+
+					if rarity then
+						activeCounts.Rarities[rarity] = (activeCounts.Rarities[rarity] or 0) + 1
+					end
+
+					if stats then
+						-- MeleeSingle, MeleeSplash -> Melee
+						local typePrefix = string.match(stats.Type, "^(%a+)%a+")
+						if stats.Type == "StunAttack" then
+							typePrefix = "Stun"
+						end
+						
+						if typePrefix then
+							activeCounts.Types[typePrefix] = (activeCounts.Types[typePrefix] or 0) + 1
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- 2. 시너지 조건 체크
+	local activeSynergies = {} -- { {Name = "...", Desc = "...", Type = "..."}, ... }
+	
+	for key, config in HeroConfig.Synergies.Types do
+		local count = activeCounts.Types[key] or 0
+		if count >= config.Requirement then
+			table.insert(activeSynergies, {
+				Name = config.Name,
+				Desc = config.Desc,
+				Type = "Type"
+			})
+		end
+	end
+
+	for key, config in HeroConfig.Synergies.Rarities do
+		local count = activeCounts.Rarities[key] or 0
+		if count >= config.Requirement then
+			table.insert(activeSynergies, {
+				Name = config.Name,
+				Desc = config.Desc,
+				Type = "Rarity"
+			})
+		end
+	end
+
+	-- 3. 클라이언트에 알림 (Attribute 사용)
+	local HttpService = game:GetService("HttpService")
+	player:SetAttribute("ActiveSynergies", HttpService:JSONEncode(activeSynergies))
 end
 
 return HeroManager

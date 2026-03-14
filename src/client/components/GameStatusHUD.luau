@@ -1,5 +1,5 @@
 --[[
-	GameStatusHUD — 게임 상태 표시 UI
+\	GameStatusHUD — 게임 상태 표시 UI
 	React 컴포넌트
 	- 현재 스테이지
 	- 남은 시간 (보스 타이머 / 대기 시간)

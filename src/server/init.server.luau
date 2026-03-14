@@ -59,6 +59,10 @@ local mergeHeroEvent = Instance.new("RemoteFunction")
 mergeHeroEvent.Name = "MergeHeroEvent"
 mergeHeroEvent.Parent = ReplicatedStorage
 
+local debugSummonEvent = Instance.new("RemoteFunction")
+debugSummonEvent.Name = "DebugSummonEvent"
+debugSummonEvent.Parent = ReplicatedStorage
+
 local debugSetTimeScale = Instance.new("RemoteEvent")
 debugSetTimeScale.Name = "DebugSetTimeScale"
 debugSetTimeScale.Parent = ReplicatedStorage
@@ -114,6 +118,12 @@ end
 -- 합성 요청
 mergeHeroEvent.OnServerInvoke = function(player, gridIndex)
 	local success, result = HeroManager.mergeHero(player, gridIndex)
+	return { success = success, result = result }
+end
+
+-- 디버그 전용 영웅 소환 요청
+debugSummonEvent.OnServerInvoke = function(player, rarity, subIndex)
+	local success, result = HeroManager.debugSummonHero(player, rarity, subIndex)
 	return { success = success, result = result }
 end
 

@@ -34,14 +34,18 @@ local function HeroSummonUI()
 	local gold = usePlayerAttribute("Gold", 0)
 	local probLevel = usePlayerAttribute("ProbLevel", 1)
 	local heroCount = usePlayerAttribute("HeroCount", 0)
+	local summonCount = usePlayerAttribute("SummonCount", 0) -- 소환 횟수 감지
 	
 	local lastSummon, setLastSummon = React.useState(nil)
 	local isSummoning, setIsSummoning = React.useState(false)
 
 	local probs = HeroConfig.Probabilities[probLevel] or HeroConfig.Probabilities[1]
+	
+	-- 현재 소환 비용 계산 (20 + 5 * 횟수)
+	local currentSummonCost = 20 + (summonCount * 5)
 
 	local function onSummon()
-		if gold < HeroConfig.SummonCost or isSummoning then return end
+		if gold < currentSummonCost or isSummoning then return end
 		setIsSummoning(true)
 
 		local summonEvent = ReplicatedStorage:WaitForChild("SummonHeroEvent")
@@ -127,8 +131,8 @@ local function HeroSummonUI()
 			SummonBtn = e("TextButton", {
 				Size = UDim2.new(1, 0, 0, 50),
 				Position = UDim2.new(0, 0, 0, 75),
-				BackgroundColor3 = (gold >= HeroConfig.SummonCost) and Color3.fromRGB(50, 150, 255) or Color3.fromRGB(80, 80, 80),
-				Text = "✨ Summon Hero (" .. HeroConfig.SummonCost .. "G)",
+				BackgroundColor3 = (gold >= currentSummonCost) and Color3.fromRGB(50, 150, 255) or Color3.fromRGB(80, 80, 80),
+				Text = "✨ Summon Hero (" .. currentSummonCost .. "G)",
 				TextColor3 = Color3.fromRGB(255, 255, 255),
 				Font = Enum.Font.GothamBold,
 				TextSize = 20,

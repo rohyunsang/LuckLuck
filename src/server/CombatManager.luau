@@ -7,6 +7,7 @@
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
 
 local HeroConfig = require(ReplicatedStorage.Shared.HeroConfig)
 local MonsterMovement = require(script.Parent.MonsterMovement)
@@ -64,29 +65,99 @@ local function findMonstersInRange(centerPos: Vector3, radius: number)
 	return targets
 end
 
--- 이펙트 생성 (서버에서 Part를 만들어 클라이언트에 리플리케이트, 혹은 클라이언트에서 그리도록 RPC 가능하지만 임시로 Part 생성)
-local function createAttackEffect(hero: Instance, target: Instance, isAoE: boolean)
-	local effect = Instance.new("Part")
-	effect.Anchored = true
-	effect.CanCollide = false
-	effect.Material = Enum.Material.Neon
-	effect.Color = Color3.new(1, 0, 0)
-	
-	if isAoE then
-		effect.Shape = Enum.PartType.Ball
-		effect.Size = Vector3.new(1, 1, 1)
-		effect.Position = target.Position
-	else
-		effect.Shape = Enum.PartType.Block
-		effect.Size = Vector3.new(0.5, 0.5, (hero:GetPivot().Position - target.Position).Magnitude)
-		effect.CFrame = CFrame.lookAt(hero:GetPivot().Position, target.Position) * CFrame.new(0, 0, -effect.Size.Z/2)
+-- 이펙트 생성 (TweenService를 이용한 횡베기 추가)
+local function createAttackEffect(hero: Instance, target: Instance, attackType: string)
+	local heroPos = hero:GetPivot().Position
+	local targetPos = target.Position
+
+	if attackType == "MeleeSingle" then
+		-- 횡베기 이펙트 (검기)
+		local slash = Instance.new("Part")
+		slash.Anchored = true
+		slash.CanCollide = false
+		slash.Material = Enum.Material.Neon
+		slash.Color = Color3.fromRGB(200, 255, 255) -- 살짝 더 진한 하늘색
+		slash.Size = Vector3.new(1, 1, 1)
+		slash.Transparency = 0.05 -- 처음엔 선명하게
+
+		-- 방향: 영웅 -> 타겟 (수평)
+		local dir = (targetPos - heroPos)
+		if dir.Magnitude > 0.1 then
+			dir = Vector3.new(dir.X, 0, dir.Z).Unit
+		else
+			dir = Vector3.new(0, 0, 1)
+		end
+		
+		-- 타겟의 중앙 살짝 위에서 스폰되어 방향을 바라봄
+		local center = targetPos + Vector3.new(0, 1.5, 0)
+		slash.CFrame = CFrame.lookAt(center, center + dir)
+		
+		-- SpecialMesh로 타원형 구체 생성 (Y축을 납작하게)
+		local mesh = Instance.new("SpecialMesh")
+		mesh.MeshType = Enum.MeshType.Sphere
+		mesh.Scale = Vector3.new(10, 0.2, 5) -- 시작 크기 대폭 확장 (가로, 두께, 넓이)
+		mesh.Parent = slash
+		slash.Parent = workspace
+		
+		-- 순식간에 가로로 쫙 퍼지며 앞으로 전진하고 사라짐
+		local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Cubic, Enum.EasingDirection.Out) -- 연출을 0.3초로 살짝 늘림
+		local tweenMesh = TweenService:Create(mesh, tweenInfo, {
+			Scale = Vector3.new(30, 0.05, 12) -- 터질 때 가로 30스터드까지 거대하게 확 넓어짐
+		})
+		local tweenPart = TweenService:Create(slash, tweenInfo, {
+			Transparency = 1,
+			CFrame = slash.CFrame * CFrame.new(0, 0, -6) -- 앞으로 6스터드 길게 베고 지나감
+		})
+		
+		tweenMesh:Play()
+		tweenPart:Play()
+		
+		task.spawn(function()
+			task.wait(0.25)
+			slash:Destroy()
+		end)
+		
+		return -- 횡베기 완료
 	end
 
-	effect.Parent = workspace
+	-- 기타 공격은 기본 파티클 유지
+	local isAoE = string.match(attackType, "Splash") ~= nil
+	local effectPart = Instance.new("Part")
+	effectPart.Anchored = true
+	effectPart.CanCollide = false
+	effectPart.Transparency = 1 -- 파트 자체는 보이지 않게
+	effectPart.Size = Vector3.new(1, 1, 1)
+	effectPart.Position = target.Position
+	effectPart.Parent = workspace
+
+	-- 파티클 에미터 생성
+	local particle = Instance.new("ParticleEmitter")
+	-- Texture 안 쓰면 로블록스 기본 입자(부드러운 빛무리)가 나옴
+	particle.Color = ColorSequence.new(Color3.fromRGB(255, 200, 50), Color3.fromRGB(255, 50, 50))
+	particle.Size = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 1.5),
+		NumberSequenceKeypoint.new(1, 0)
+	})
+	particle.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0),
+		NumberSequenceKeypoint.new(1, 1)
+	})
+	particle.Lifetime = NumberRange.new(0.3, 0.5)
+	particle.Speed = NumberRange.new(10, 25)
+	particle.SpreadAngle = Vector2.new(180, 180) -- 사방으로 흩어짐
 	
+	-- 서버 생성 직후 Emit() 호출 시 클라이언트 복제 지연으로 인해 스킵될 수 있으므로,
+	-- Emit() 대신 잠시 켜두었다가 끄는 방식을 사용합니다.
+	particle.Rate = isAoE and 200 or 50
+	particle.Enabled = true
+	particle.Parent = effectPart
+	
+	-- 이펙트 파트 유지 후 삭제 (파티클이 다 사라질 시간 고려)
 	task.spawn(function()
 		task.wait(0.1)
-		if effect then effect:Destroy() end
+		if particle then particle.Enabled = false end
+		task.wait(0.5)
+		if effectPart then effectPart:Destroy() end
 	end)
 end
 
@@ -148,7 +219,7 @@ function CombatManager.start()
 							local hp = t:GetAttribute("Health") or 0
 							t:SetAttribute("Health", hp - damage)
 						end
-						createAttackEffect(heroModel, target, true)
+						createAttackEffect(heroModel, target, stats.Type)
 						
 					elseif stats.Type == "StunAttack" then
 						-- 스턴 공격
@@ -157,7 +228,7 @@ function CombatManager.start()
 						
 						local currentStun = target:GetAttribute("StunRemaining") or 0
 						target:SetAttribute("StunRemaining", math.max(currentStun, stats.StunDuration))
-						createAttackEffect(heroModel, target, false)
+						createAttackEffect(heroModel, target, stats.Type)
 						
 					else
 						-- 단일 공격

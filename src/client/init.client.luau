@@ -14,7 +14,8 @@ local SpawnButton = require(script.components.SpawnButton)
 local GameStatusHUD = require(script.components.GameStatusHUD)
 local HeroSummonUI = require(script.components.HeroSummonUI)
 local HeroMergeUI = require(script.components.HeroMergeUI)
-local DebugUI = require(script.components.DebugUI)
+local DebugMenu = require(script.components.DebugMenu)
+local SynergyHUD = require(script.components.SynergyHUD)
 
 local e = React.createElement
 
@@ -25,7 +26,8 @@ local function App()
 		SpawnBtn = e(SpawnButton),
 		SummonUI = e(HeroSummonUI),
 		MergeUI = e(HeroMergeUI),
-		DebugPanel = e(DebugUI),
+		DebugMenu = e(DebugMenu),
+		SynergyInfo = e(SynergyHUD),
 	})
 end
 

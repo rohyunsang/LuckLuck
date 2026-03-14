@@ -90,4 +90,47 @@ HeroConfig.CombatStats = {
 	[5] = { Type = "StunAttack",    Range = 25, Cooldown = 3.0, BaseDamage = 5,  SplashRadius = 0, StunDuration = 1.5 },
 }
 
+-- 시너지 시스템 설정
+HeroConfig.Synergies = {
+	-- 공격 타입별 시너지 (동일 타입 N마리 배치 시)
+	Types = {
+		["Melee"] = {
+			Name = "Melee Warriors",
+			Desc = "20% increased damage for melee heroes.",
+			Requirement = 3, -- 3마리 이상
+			TargetTypes = { "MeleeSingle", "MeleeSplash" },
+			Buff = { DamageMultiplier = 1.2 }
+		},
+		["Ranged"] = {
+			Name = "Ranged Archers",
+			Desc = "15% increased range for ranged heroes.",
+			Requirement = 3,
+			TargetTypes = { "RangedSingle", "RangedSplash" },
+			Buff = { RangeMultiplier = 1.15 }
+		},
+		["Stun"] = {
+			Name = "CC Experts",
+			Desc = "20% reduced cooldown for stun heroes.",
+			Requirement = 2,
+			TargetTypes = { "StunAttack" },
+			Buff = { CooldownMultiplier = 0.8 }
+		},
+	},
+	-- 등급별 시너지 (동일 등급 N마리 배치 시)
+	Rarities = {
+		["Rare"] = {
+			Name = "Rare Collection",
+			Desc = "10% increased damage for all Rare heroes.",
+			Requirement = 5,
+			Buff = { DamageMultiplier = 1.1 }
+		},
+		["Epic"] = {
+			Name = "Epic Party",
+			Desc = "15% increased damage for all Epic heroes.",
+			Requirement = 3,
+			Buff = { DamageMultiplier = 1.15 }
+		}
+	}
+}
+
 return HeroConfig
